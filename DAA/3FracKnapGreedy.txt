@@ -1,0 +1,114 @@
+# Fractional Knapsack using Greedy Method
+def fractional_knapsack(weights, profits, capacity):
+
+    n = len(weights)
+
+    # Calculate profit/weight ratio
+    items = []
+
+    for i in range(n):
+        ratio = profits[i] / weights[i]
+        items.append((ratio, weights[i], profits[i]))
+
+    # Sort items in descending order of ratio
+    items.sort(reverse=True)
+
+    total_profit = 0
+
+    print("\nSelected Items:")
+
+    for ratio, weight, profit in items:
+
+        if capacity == 0:
+            break
+
+        if weight <= capacity:
+            # Take the complete item
+            capacity -= weight
+            total_profit += profit
+
+            print("Taken full item:",
+                  "Weight =", weight,
+                  "Profit =", profit)
+
+        else:
+            # Take fraction of the item
+            fraction = capacity / weight
+            total_profit += profit * fraction
+
+            print("Taken fraction:",
+                  round(fraction, 2),
+                  "Weight =", capacity,
+                  "Profit =", round(profit * fraction, 2))
+
+            capacity = 0
+
+    return total_profit
+
+
+# Input
+n = int(input("Enter number of items: "))
+
+weights = []
+profits = []
+
+for i in range(n):
+    print("\nEnter details of item", i + 1)
+
+    w = float(input("Enter weight: "))
+    p = float(input("Enter profit: "))
+
+    if w <= 0 or p < 0:
+        raise ValueError("Weight must be positive and profit non-negative")
+
+    weights.append(w)
+    profits.append(p)
+
+capacity = float(input("\nEnter knapsack capacity: "))
+
+if capacity < 0:
+    raise ValueError("Capacity cannot be negative")
+
+# Function call
+max_profit = fractional_knapsack(weights, profits, capacity)
+
+print("\nMaximum Profit =", round(max_profit, 2))
+
+
+# 6. Time and space complexity analysis
+# Let n be the number of items.
+# Operation	Time complexity	Reason
+# Calculate ratios	O(n)	Visits all items
+# Sort items	O(n log n)	Sorting the items
+# Select items	O(n)	Visits sorted items
+# Calculate maximum profit	O(n log n)	Sorting dominates
+# Overall time complexity:boxed{O(n\log n)}
+
+# Space complexity: O(n)
+# Reason:
+# - The items list stores n tuples.
+# - The weights and profits lists also store n values each.
+# - Sorting may also require additional implementation-dependent memory.
+# The overall auxiliary storage is O(n).
+
+# 1. What is the Knapsack Problem?
+# It is an optimization problem in which we select items to maximize profit without exceeding the given capacity.
+
+# 2. What is Fractional Knapsack?
+# It is a problem in which we can select complete items or fractions of items.
+
+# 3. What is the Greedy Method?
+
+# It is an algorithmic technique that selects the best available option at each step.
+
+# 4. Why is Fractional Knapsack called a Greedy Algorithm?
+
+# Because it selects items in descending order of their profit-to-weight ratio.
+
+# 5. What is the objective of this practical?
+
+# To maximize total profit without exceeding the knapsack capacity
+
+# 29. What is an optimization problem?
+
+# A problem in which we try to find the best possible solution, such as maximum profit or minimum cost.

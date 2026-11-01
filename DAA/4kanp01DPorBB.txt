@@ -1,0 +1,343 @@
+# 0/1 Knapsack using Dynamic Programming
+# and Branch and Bound
+# Without importing any libraries
+
+# 1. Dynamic Programming Method
+def knapsack_dp(weights, profits, capacity):
+
+    n = len(weights)
+
+    # Create DP table
+    dp = [[0 for _ in range(capacity + 1)]
+          for _ in range(n + 1)]
+
+    # Fill DP table
+    for i in range(1, n + 1):
+
+        for w in range(capacity + 1):
+
+            if weights[i - 1] <= w:
+
+                dp[i][w] = max(
+                    profits[i - 1] +
+                    dp[i - 1][w - weights[i - 1]],
+
+                    dp[i - 1][w]
+                )
+
+            else:
+                dp[i][w] = dp[i - 1][w]
+
+    # Find selected items
+    selected = []
+    w = capacity
+
+    for i in range(n, 0, -1):
+
+        if dp[i][w] != dp[i - 1][w]:
+
+            selected.append(i)
+            w -= weights[i - 1]
+
+    selected.reverse()
+
+    print("\nSelected Items:", selected)
+
+    return dp[n][capacity]
+
+
+# 2. Branch and Bound Method
+def knapsack_bb(weights, profits, capacity):
+
+    n = len(weights)
+
+    # Sort items by profit/weight ratio
+    items = []
+
+    for i in range(n):
+        ratio = profits[i] / weights[i]
+
+        items.append(
+            (ratio, weights[i], profits[i], i + 1)
+        )
+
+    items.sort(reverse=True)
+
+    # Calculate upper bound
+    def bound(level, weight, profit):
+# level: Current item position.
+# weight: Total weight already selected.
+# profit: Total profit already earned.
+        if weight >= capacity:
+            return profit
+
+        result = profit
+        total_weight = weight
+        j = level
+# result stores the estimated upper-bound profit.
+# total_weight stores the current total weight.
+# j identifies the next item to consider.
+        # Add complete items while capacity permits
+        while (j < n and
+               total_weight + items[j][1] <= capacity):
+
+            total_weight += items[j][1]
+            result += items[j][2] # add profit to result
+            j += 1 # moves to the next item
+
+        # Add fractional part of next item
+        if j < n:
+
+            remaining = capacity - total_weight
+            result += remaining * items[j][0]
+
+        return result
+
+    # Each node:
+    # (bound, level, weight, profit, selected items)
+
+    nodes = []
+
+    nodes.append(
+        (bound(0, 0, 0), 0, 0, 0, ())
+    )
+
+    max_profit = 0
+    best_items = ()
+
+# Process the nodes
+    while len(nodes) > 0:
+
+        # Find node having maximum upper bound
+        best_index = 0
+
+        for i in range(1, len(nodes)):
+
+            if nodes[i][0] > nodes[best_index][0]:
+                best_index = i
+
+        current = nodes.pop(best_index)
+
+        #Extract the node information
+        current_bound, level, weight, profit, selected = current
+
+        # Prune node if its bound is not promising
+        if current_bound <= max_profit:
+            continue # skip the nde
+
+        if level == n:
+            continue
+
+        ratio, item_weight, item_profit, item_no = items[level]
+
+        # Include current item
+        new_weight = weight + item_weight
+        new_profit = profit + item_profit
+
+        new_selected = selected + (item_no,)
+
+        if new_weight <= capacity:
+
+            if new_profit > max_profit:
+
+                max_profit = new_profit
+                best_items = new_selected
+
+            new_bound = bound(
+                level + 1,
+                new_weight,
+                new_profit
+            )
+
+            if new_bound > max_profit:
+
+                nodes.append(
+                    (
+                        new_bound,
+                        level + 1,
+                        new_weight,
+                        new_profit,
+                        new_selected
+                    )
+                )
+
+        # Exclude current item
+        exclude_bound = bound(
+            level + 1,
+            weight,
+            profit
+        )
+
+        if exclude_bound > max_profit:
+
+            nodes.append(
+                (
+                    exclude_bound,
+                    level + 1,
+                    weight,
+                    profit,
+                    selected
+                )
+            )
+
+    print("\nSelected Items:", sorted(best_items))
+
+    return max_profit
+
+
+# Main Program
+n = int(input("Enter number of items: "))
+
+weights = []
+profits = []
+
+for i in range(n):
+
+    print("\nItem", i + 1)
+
+    w = int(input("Enter weight: "))
+    p = int(input("Enter profit: "))
+
+    if w <= 0 or p < 0:
+        raise ValueError(
+            "Weight must be positive and profit non-negative"
+        )
+
+    weights.append(w)
+    profits.append(p)
+
+capacity = int(input("\nEnter knapsack capacity: "))
+
+if capacity < 0:
+    raise ValueError("Capacity cannot be negative")
+
+# result = knapsack_dp(  weights, profits, capacity )
+# print("Maximum Profit (DP):", result)
+
+# result = knapsack_bb( weights, profits, capacity)
+# print("Maximum Profit (Branch and Bound):", result)
+
+# # Main Menu
+while True:
+
+    print("\n----- 0/1 KNAPSACK MENU -----")
+    print("1. Dynamic Programming")
+    print("2. Branch and Bound")
+    print("3. Exit")
+
+    choice = input("Enter your choice: ")
+
+    match choice:
+
+        case "1":
+
+            result = knapsack_dp(
+                weights, profits, capacity
+            )
+
+            print("Maximum Profit (DP):", result)
+
+        case "2":
+
+            result = knapsack_bb(
+                weights, profits, capacity
+            )
+
+            print("Maximum Profit (Branch and Bound):", result)
+
+        case "3":
+
+            print("Exiting Program...")
+            break
+
+        case _:
+
+            print("Invalid Choice! Please try again.")
+
+# 8. Time and space complexity analysis
+# Let:
+# - \(n\) = number of items.
+# - \(W\) = knapsack capacity.
+# Dynamic Programming
+# Operation	Complexity
+# Create DP table	O(nW)
+# Fill DP table	O(nW)
+# Find selected items	O(n)
+# Overall time	O(nW)
+# Space	O(nW)
+
+# Why?
+
+# The DP table has \((n+1)\times(W+1)\) cells, and each cell is calculated once.
+# Branch and Bound
+# Operation	Complexity
+# Calculate ratios	O(n)
+# Sort items	O(n log n)
+# Explore branches	O(2ⁿ) worst case
+# Overall time	O(2ⁿ) worst case
+# Space	O(2ⁿ) worst case
+
+# Why?
+
+# Every item has two possibilities: include or exclude. In the worst case, the algorithm may explore an exponential number of combinations.
+
+# The actual running time can be much smaller because pruning eliminates unpromising branches.
+# Comparison between both methods
+# Feature	Dynamic Programming	Branch and Bound
+# Technique	Stores subproblem results	Explores promising branches
+# Main concept	DP table	Upper bound and pruning
+# Time complexity	O(nW)	O(2ⁿ) worst case
+# Space complexity	O(nW)	O(2ⁿ) worst case
+# Optimal solution	Yes	Yes
+# Main advantage	Predictable performance for moderate capacity	Can avoid exploring many combinations
+# Main limitation	Depends on capacity W	Worst case is exponential
+
+# Remember: Both methods give an optimal answer for 0/1 Knapsack. Their efficiency depends on the input size and capacity.
+
+# 6. What is Dynamic Programming?
+
+# It is a technique that solves problems by dividing them into smaller overlapping subproblems and storing their results.
+
+# 7. Why do we use Dynamic Programming in Knapsack?
+
+# To avoid repeatedly solving the same subproblems and find the optimal solution.
+
+# 8. What is a DP table?
+
+# It is a two-dimensional table that stores the maximum profit for different item counts and capacities.
+
+# 9. What does dp[i][w] represent?
+
+# The maximum profit using the first i items with knapsack capacity w.
+
+# 10. What is the recurrence relation of 0/1 Knapsack?
+# \[
+# DP[i][w]=\max(DP[i-1][w],\ profit_i+DP[i-1][w-weight_i])
+# \]
+
+# This applies when the item fits. Otherwise, we use \(DP[i-1][w]\).
+
+# 11. What is the base condition?
+
+# If there are zero items or the capacity is zero, the maximum profit is zero.
+
+# C. Branch and Bound questions
+# 16. What is Branch and Bound?
+
+# It is an optimization technique that explores possible solutions and eliminates unpromising branches using bounds.
+
+# 17. What is branching?
+
+# Branching divides a problem into smaller possibilities, such as including or excluding an item.
+
+# 18. What is bounding?
+
+# Bounding calculates an upper limit on the profit that can be achieved from a particular node.
+
+# 19. What is pruning?
+
+# Pruning means eliminating branches that cannot produce a better solution than the current best solution.
+
+# 20. What is an upper bound?
+
+# It is an estimate of the maximum profit that may be achieved from a particular node.

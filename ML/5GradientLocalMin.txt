@@ -1,0 +1,181 @@
+
+# Gradient Descent Algorithm
+
+# Function
+def function(x):        
+    return (x + 3) ** 2    # CHANGE 
+
+# Derivative of function
+def derivative(x):
+    return 2 * (x + 3) # CHANGE 
+
+# Initial value
+x = 2 # CHANGE calculate after taking derivative 
+
+
+# Learning rate
+learning_rate = 0.1
+
+# Number of iterations
+iterations = 50
+
+print("Gradient Descent")
+print("----------------------------")
+x_history = [x]
+y_history = [function(x)]
+
+for i in range(iterations):
+
+    gradient = derivative(x)
+
+    # Update x
+    x = x - learning_rate * gradient
+    x_history.append(x)
+    y_history.append(function(x))
+    print("Iteration", i + 1,
+          "x =", round(x, 6),
+          "y =", round(function(x), 6))
+
+print("\nLocal Minimum:")
+print("x =", round(x, 6))
+print("y =", round(function(x), 6))
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+x_values = np.linspace(-6, 4, 100) # CHANGE 
+y_values = (x_values + 3) ** 2 # CHANGE 
+
+plt.plot(x_values, y_values, label="y = (x + 3)^2")
+
+plt.scatter(x_history, y_history,
+            color="red", label="Gradient Descent Steps")
+
+plt.scatter(-3, 0, color="green",
+            marker="*", s=150, label="Minimum Point") # CHANGE 
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Gradient Descent - Function Graph")
+plt.legend()
+plt.grid()
+plt.show()
+
+# . What is Gradient Descent?
+# Gradient Descent is an optimization algorithm used to find the minimum value of a function.
+# t works by:
+# 1. Starting with an initial value of \(x\).
+# 2. Calculating the derivative (slope) of the function.
+# 3. Updating \(x\) in the opposite direction of the slope.
+# 4. Repeating the process until the minimum is reached approximately.
+# Update formula:
+# \[
+# x_{\text{new}}=x_{\text{old}}-\alpha f'(x)
+# \]
+
+# Where:
+# - \(x\) = current value.
+# # - \(\alpha\) = learning rate.
+# # - \(f'(x)\) = derivative or gradient.
+
+# 1. What is Gradient Descent?
+
+# Gradient Descent is an optimization algorithm used to find the minimum value of a function.
+
+# 2. What is the objective of this practical?
+
+# To find the local minimum of a mathematical function using Gradient Descent.
+
+# 3. Which equation is used in this practical?
+# \[
+# y=(x+3)^2
+# \]
+
+# 4. What is the derivative of the given equation?
+# \[
+# f'(x)=2(x+3)
+# \]
+
+# 5. What is the minimum point?
+
+# The minimum point is (-3, 0).
+
+# 6. What is a gradient?
+
+# A gradient represents the slope or rate of change of a function.
+
+# 7. What is the learning rate?
+
+# The learning rate controls how large each update step is.
+
+# 8. What happens if the learning rate is too high?
+
+# The algorithm may overshoot the minimum or fail to converge.
+
+# 9. What happens if the learning rate is too small?
+
+# The algorithm takes more iterations and converges slowly.
+
+# 10. What are iterations?
+
+# Iterations are the number of times the algorithm repeats the update process.
+# Technical questions
+# 11. Why do we subtract the gradient?
+
+# Because we want to move in the direction of decreasing function values.
+
+# 12. Why do we use a derivative?
+
+# To calculate the slope and determine the direction of the next step.
+
+# 13. What is a local minimum?
+
+# A point where the function value is lower than the values at nearby points.
+
+# 14. What is a global minimum?
+
+# The lowest function value over the entire domain.
+
+# 15. What is the difference between local and global minimum?
+
+# A local minimum is the lowest nearby point, whereas a global minimum is the lowest point in the entire domain.
+
+# 16. Which Python library is used for plotting?
+
+# Matplotlib.
+
+# 17. Why do we use NumPy?
+
+# To generate numerical values and perform mathematical operations.
+
+# 18. What is np.linspace()?
+
+# It generates evenly spaced numbers within a specified interval.
+
+# 19. What is plt.scatter()?
+
+# It displays individual points on a graph.
+
+# 20. Can Gradient Descent be used in Machine Learning?
+
+# Yes. It is used to minimize loss or cost functions during model training.
+# Practical-based questions
+# 21. What happens if the initial value of x changes?
+
+# The algorithm starts from a different position, but for this function it converges towards -3 with a suitable learning rate.
+
+# 22. What happens if iterations increase?
+
+# The algorithm gets more opportunities to approach the minimum.
+
+# 23. Can we use this algorithm for other equations?
+
+# Yes, provided we can calculate the derivative and choose suitable optimization settings.
+
+# 24. Why do we store x_history and y_history?
+
+# To display the movement of the algorithm on the graph.
+
+# 25. What is the final output of this practical?
+
+# The algorithm approximately finds x = -3 and y = 0.

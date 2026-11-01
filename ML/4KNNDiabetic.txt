@@ -1,0 +1,292 @@
+# Diabetes Prediction using K-Nearest Neighbors (KNN)
+# 0 – No Diabetes
+# 1 – Diabetes
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    precision_score,
+    recall_score,
+    classification_report,
+    ConfusionMatrixDisplay
+)
+
+
+# Step 1: Load Dataset
+df = pd.read_csv("diabetes.csv")
+
+print("Dataset Shape:", df.shape)
+print("\nFirst 5 Rows:")
+print(df.head())
+
+
+# Step 2: Separate Features and Target
+X = df.drop("Outcome", axis=1)
+y = df["Outcome"]
+
+print("\nFeatures Shape:", X.shape)
+print("Target Shape:", y.shape)
+
+
+# Step 3: Split Dataset into Training and Testing
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+print("\nTraining Data:", X_train.shape)
+print("Testing Data:", X_test.shape)
+
+
+# Step 4: Normalize the Data
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+print("\nData Normalization Completed!")
+
+
+# Step 5: Create KNN Model
+knn = KNeighborsClassifier(n_neighbors=5)
+
+# Train the model
+knn.fit(X_train, y_train)
+
+
+# Step 6: Prediction
+y_pred = knn.predict(X_test)
+
+
+# Step 7: Calculate Accuracy
+accuracy = accuracy_score(y_test, y_pred)
+
+
+# Step 8: Calculate Error Rate
+error_rate = 1 - accuracy
+
+
+# Step 9: Calculate Confusion Matrix
+cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+
+
+# Step 10: Calculate Precision
+precision = precision_score(
+    y_test, y_pred, zero_division=0
+)
+
+
+# Step 11: Calculate Recall
+recall = recall_score(
+    y_test, y_pred, zero_division=0
+)
+
+
+# Display Results
+print("\n----- KNN PERFORMANCE -----")
+
+print("Accuracy:", round(accuracy, 4))
+print("Accuracy Percentage:", round(accuracy * 100, 2), "%")
+
+print("Error Rate:", round(error_rate, 4))
+print("Error Rate Percentage:", round(error_rate * 100, 2), "%")
+
+print("Precision:", round(precision, 4))
+print("Recall:", round(recall, 4))
+
+
+# Step 12: Display Confusion Matrix
+print("\nConfusion Matrix:")
+print(cm)
+
+
+# Step 13: Classification Report
+print("\nClassification Report:")
+print(classification_report(
+    y_test,
+    y_pred,
+    labels=[0, 1],
+    target_names=["No Diabetes", "Diabetes"],
+    zero_division=0
+))
+
+
+# Step 14: Confusion Matrix Visualization
+disp = ConfusionMatrixDisplay(
+    confusion_matrix=cm,
+    display_labels=["No Diabetes", "Diabetes"]
+)
+
+disp.plot(cmap="viridis")
+plt.title("KNN Confusion Matrix")
+plt.show()
+
+# Actual vs Predicted Graph
+
+# plt.figure(figsize=(6, 4))
+
+# plt.scatter(range(len(y_test)), y_test,
+#             label="Actual", marker="o")
+
+# plt.scatter(range(len(y_pred)), y_pred,
+#             label="Predicted", marker="x")
+
+# plt.title("Actual vs Predicted Diabetes")
+# plt.xlabel("Test Samples")
+# plt.ylabel("Diabetes Outcome")
+# plt.yticks([0, 1], ["No Diabetes", "Diabetes"])
+# plt.legend()
+
+# plt.show()
+
+# Q1. What is the aim of this practical?
+
+# To implement the KNN algorithm on the diabetes dataset and calculate its classification performance.
+
+# Q2. What is diabetes?
+
+# Diabetes is a medical condition in which blood glucose levels are higher than normal due to problems with insulin production or insulin usage.
+
+# Q3. What is KNN?
+
+# K-Nearest Neighbors is a supervised machine learning algorithm that classifies a new data point based on the majority class of its nearest neighbors.
+
+# Q4. Which type of machine learning is used?
+
+# Supervised learning.
+
+# Q5. Is this classification or regression?
+
+# Classification, because the output has two classes: 0 and 1.
+
+# Q6. What is the target variable?
+
+# Outcome.
+
+# Q7. What does Outcome 0 and 1 represent?
+# - 0 – No Diabetes.
+# - 1 – Diabetes.
+# Q8. Which dataset is used?
+
+# The diabetes.csv dataset from Kaggle.
+# Dataset and preprocessing questions
+# Q9. What are the input features?
+
+# Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, and Age.
+
+# Q10. What is feature scaling?
+
+# Feature scaling brings numerical features onto a comparable scale.
+
+# Q11. Why is scaling necessary in KNN?
+
+# Because KNN uses distance calculations, and features with larger numerical ranges can dominate the distance.
+
+# Q12. Which scaling method is used?
+
+# StandardScaler.
+
+# Q13. What is StandardScaler?
+
+# It transforms numerical features to have approximately zero mean and unit standard deviation.
+
+# Q14. What is the train-test split used?
+
+# 80% training data and 20% testing data.
+
+# Q15. What does stratify=y do?
+
+# It maintains approximately the same class distribution in the training and testing datasets.
+# KNN questions
+# Q16. What does K represent in KNN?
+
+# K represents the number of nearest neighbors considered during classification.
+
+# Q17. What is the value of K in your program?
+
+# K = 5.
+
+# Q18. How does KNN work?
+
+# It calculates distances between data points, identifies the nearest K neighbors, and assigns the majority class.
+
+# Q19. Which distance measure is commonly used in KNN?
+
+# Euclidean distance.
+# \[
+# d=\sqrt{\sum_{i=1}^{n}(x_i-y_i)^2}
+# \]
+
+# Q20. What happens if K is too small?
+
+# The model may become sensitive to noise and overfit.
+
+# Q21. What happens if K is too large?
+
+# The model may become too generalized and underfit.
+
+# Q22. Is KNN a lazy learning algorithm?
+
+# Yes. It stores the training data and performs most of its work during prediction.
+# Evaluation questions
+# Q23. What is a confusion matrix?
+
+# It is a table that shows correct and incorrect classification predictions.
+
+# Q24. What is accuracy?
+
+# Accuracy is the proportion of correctly classified records.
+
+# Q25. What is error rate?
+
+# Error rate is the proportion of incorrectly classified records.
+
+# Q26. What is precision?
+
+# Precision measures how many predicted positive cases are actually positive.
+
+# Q27. What is recall?
+
+# Recall measures how many actual positive cases are correctly identified.
+
+# Q28. What is a false positive?
+
+# A non-diabetic person incorrectly predicted as diabetic.
+
+# Q29. What is a false negative?
+
+# A diabetic person incorrectly predicted as non-diabetic.
+
+# Q30. Which metric is especially important for diabetes prediction?
+
+# Recall, because it helps identify as many actual diabetic cases as possible.
+
+# Q31. What is F1 score?
+
+# It is the harmonic mean of precision and recall.
+
+# Q32. What is support in the classification report?
+
+# It is the number of actual records belonging to each class.
+
+# Q33. What is Euclidean distance?
+
+# It is the straight-line distance between two points in a multidimensional space.
+
+# Q34. What is the advantage of KNN?
+
+# It is simple, easy to implement, and does not require a complex training process.
+
+# Q35. What is the disadvantage of KNN?
+
+# Prediction can be slow on large datasets because distances to training samples must be calculated.

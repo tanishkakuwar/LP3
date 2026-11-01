@@ -1,0 +1,224 @@
+# Fibonacci Series using Non-Recursive Method
+# n = int(input("Enter the number of terms: "))
+# a, b = 0, 1
+# print("Fibonacci Series:")
+# for i in range(n):
+#     print(a, end=" ")
+#     a, b = b, a + b
+
+
+# Fibonacci Series using Recursive Method
+# def fibonacci(n):
+#     if n <= 1:
+#         return n
+#     return fibonacci(n-1) + fibonacci(n-2)
+# n = int(input("Enter the number of terms: "))
+# print("Fibonacci Series:")
+# for i in range(n):
+#     print(fibonacci(i), end=" ")
+
+
+# # Tower of Hanoi using Recursion
+# def tower_of_hanoi(n, source, auxiliary, destination):
+#     if n == 1:
+#         print("Move disk 1 from", source, "to", destination)
+#         return
+#     tower_of_hanoi(n-1, source, destination, auxiliary)
+#     print("Move disk", n, "from", source, "to", destination)
+#     tower_of_hanoi(n-1, auxiliary, source, destination)
+
+# n = int(input("Enter the number of disks: "))
+# print("Steps to solve Tower of Hanoi:")
+# tower_of_hanoi(n, 'A', 'B', 'C')
+
+
+# Tower of Hanoi using Non-Recursive Method
+# def tower_of_hanoi(n):
+
+#     source = list(range(n, 0, -1))
+#     auxiliary = []
+#     destination = []
+
+#     rods = [source, auxiliary, destination]
+#     names = ['A', 'B', 'C']
+
+#     total_moves = 2**n - 1
+
+#     if n % 2 == 0:
+#         names[1], names[2] = names[2], names[1]
+
+#     for move in range(1, total_moves + 1):
+
+#         if move % 3 == 1:
+#             from_rod, to_rod = 0, 2
+
+#         elif move % 3 == 2:
+#             from_rod, to_rod = 0, 1
+
+#         else:
+#             from_rod, to_rod = 1, 2
+
+#         if not rods[from_rod]:
+#             rods[from_rod].append(rods[to_rod].pop())
+
+#         elif not rods[to_rod]:
+#             rods[to_rod].append(rods[from_rod].pop())
+
+#         elif rods[from_rod][-1] < rods[to_rod][-1]:
+#             rods[to_rod].append(rods[from_rod].pop())
+
+#         else:
+#             rods[from_rod].append(rods[to_rod].pop())
+
+#         print("Move", move, ":", names[from_rod],
+#               "->", names[to_rod])
+
+
+# n = int(input("Enter the number of disks: "))
+
+# tower_of_hanoi(n)
+
+
+def fibonacci_non_recursive(n):
+    a, b = 0, 1
+
+    print("Fibonacci Series:")
+    for i in range(n):
+        print(a, end=" ")
+        a, b = b, a + b
+    print()
+# Time	O(n)	Loop executes n times
+# Space	O(1)	Only two variables are used
+
+def fibonacci_recursive(n):
+    def fibonacci(num):
+        if num <= 1:
+            return num
+        return fibonacci(num - 1) + fibonacci(num - 2)
+
+    print("Fibonacci Series:")
+    for i in range(n):
+        print(fibonacci(i), end=" ")
+    print()
+# Time	O(2ⁿ) upper bound	Repeated recursive calls
+# Space	O(n)	Maximum recursion depth
+
+
+# Rules of Tower of Hanoi
+# 1. Only one disk can be moved at a time.
+# 2. Only the top disk of a rod can be moved.
+# 3. A larger disk cannot be placed on a smaller disk.
+# 4. All disks must be transferred from the source rod to the destination rod.
+def tower_of_hanoi_recursive(n, source, auxiliary, destination):
+    if n == 1:
+        print("Move disk 1 from", source, "to", destination)
+        return
+
+    tower_of_hanoi_recursive(n - 1, source, destination, auxiliary)
+
+    print("Move disk", n, "from", source, "to", destination)
+
+    tower_of_hanoi_recursive(n - 1, auxiliary, source, destination)
+
+# T(n)=O(2^n)
+# Space complexity:O(n)
+
+
+def tower_of_hanoi_non_recursive(n):
+
+    source = list(range(n, 0, -1))
+    auxiliary = []
+    destination = []
+
+    rods = [source, auxiliary, destination]
+    names = ['A', 'B', 'C']
+
+    total_moves = 2 ** n - 1
+
+    if n % 2 == 0:
+        names[1], names[2] = names[2], names[1]
+
+    for move in range(1, total_moves + 1):
+
+        if move % 3 == 1:
+            from_rod, to_rod = 0, 2
+
+        elif move % 3 == 2:
+            from_rod, to_rod = 0, 1
+
+        else:
+            from_rod, to_rod = 1, 2
+
+        if not rods[from_rod]:
+            rods[from_rod].append(rods[to_rod].pop())
+
+        elif not rods[to_rod]:
+            rods[to_rod].append(rods[from_rod].pop())
+
+        elif rods[from_rod][-1] < rods[to_rod][-1]:
+            rods[to_rod].append(rods[from_rod].pop())
+
+        else:
+            rods[from_rod].append(rods[to_rod].pop())
+
+        print("Move", move, ":", names[from_rod],
+              "->", names[to_rod])
+# Time	O(2ⁿ)
+# Space	O(n)
+
+# Main menu
+while True:
+
+    print("\n========== MENU ==========")
+    print("1. Fibonacci (Non-Recursive)")
+    print("2. Fibonacci (Recursive)")
+    print("3. Tower of Hanoi (Recursive)")
+    print("4. Tower of Hanoi (Non-Recursive)")
+    print("5. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    match choice:
+
+        case 1:
+            n = int(input("Enter the number of terms: "))
+            if n < 0:
+                print("Enter a non-negative number.")
+            else:
+                fibonacci_non_recursive(n)
+
+        case 2:
+            n = int(input("Enter the number of terms: "))
+            if n < 0:
+                print("Enter a non-negative number.")
+            else:
+                fibonacci_recursive(n)
+
+        case 3:
+            n = int(input("Enter the number of disks: "))
+            if n <= 0:
+                print("Enter a positive number of disks.")
+            else:
+                print("Steps to solve Tower of Hanoi:")
+                tower_of_hanoi_recursive(n, 'A', 'B', 'C')
+
+        case 4:
+            n = int(input("Enter the number of disks: "))
+            if n <= 0:
+                print("Enter a positive number of disks.")
+            else:
+                print("Steps to solve Tower of Hanoi:")
+                tower_of_hanoi_non_recursive(n)
+
+        case 5:
+            print("Exiting program...")
+            break
+
+        case _:
+            print("Invalid choice! Please enter 1 to 5.")
+
+# Iterative Fibonacci is faster because it calculates each term only once.
+# Recursive Fibonacci repeats calculations, making it slower.
+# Both Tower of Hanoi methods require \(2^n-1\) moves.
+# Recursive Tower of Hanoi uses the function call stack.
+# Non-recursive Tower of Hanoi uses lists to represent the rods.

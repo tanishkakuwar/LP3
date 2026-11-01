@@ -1,0 +1,322 @@
+
+# Email Spam Detection using KNN and SVM
+# Not Spam (0) and spam measn 1
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import LinearSVC
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report,
+    ConfusionMatrixDisplay
+)
+
+# Step 1: Load Dataset
+df = pd.read_csv("emails.csv")
+
+print("Dataset Loaded Successfully!")
+print("Dataset Shape:", df.shape)
+print("\nFirst 5 Rows:")
+print(df.head())
+
+# Step 2: Separate Features and Target
+target_column = df.columns[-1]
+
+y = pd.to_numeric(df[target_column], errors="coerce")   #  errors="coerce" - converts invalid values into missing values.
+
+# Remove rows with missing target values
+valid_rows = y.notna()
+df = df.loc[valid_rows].copy()
+y = y.loc[valid_rows].astype(int)
+
+# Remove Email ID column
+X = df.drop(columns=[target_column])
+
+if "Email No." in X.columns:
+    X = X.drop(columns=["Email No."])
+
+# Keep only numeric feature columns
+X = X.apply(pd.to_numeric, errors="coerce")
+X = X.fillna(0)
+
+print("\nFeatures Shape:", X.shape)
+print("Target Shape:", y.shape)
+
+print("\nClass Distribution:")
+print(y.value_counts())
+
+# Step 3: Split Dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+print("\nTraining Data:", X_train.shape)
+print("Testing Data:", X_test.shape)
+
+# Step 4: Feature Scaling
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Step 5: Train KNN Model
+knn = KNeighborsClassifier(n_neighbors=5)
+
+knn.fit(X_train_scaled, y_train)
+
+knn_pred = knn.predict(X_test_scaled)
+
+# Step 6: Train SVM Model
+svm = LinearSVC(random_state=42, max_iter=10000)
+
+svm.fit(X_train_scaled, y_train)
+
+svm_pred = svm.predict(X_test_scaled)
+
+# Step 7: Evaluate Model Performance
+def evaluate_model(name, y_true, y_pred):
+
+    print("\n", name, "Performance")
+    print("-" * 40)
+
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred, zero_division=0)
+    recall = recall_score(y_true, y_pred, zero_division=0)
+    f1 = f1_score(y_true, y_pred, zero_division=0)
+
+    print("Accuracy :", round(accuracy * 100, 2), "%")
+    print("Precision:", round(precision * 100, 2), "%")
+    print("Recall   :", round(recall * 100, 2), "%")
+    print("F1 Score :", round(f1 * 100, 2), "%")
+
+    print("\nClassification Report:")
+    print(classification_report(
+        y_true, y_pred,
+        labels=[0, 1],
+        target_names=["Not Spam", "Spam"],
+        zero_division=0
+    ))
+
+    return accuracy, precision, recall, f1
+
+
+# Evaluate KNN
+knn_results = evaluate_model("KNN", y_test, knn_pred)
+
+# Evaluate SVM
+svm_results = evaluate_model("SVM", y_test, svm_pred)
+
+# Step 8: Compare Both Models
+comparison = pd.DataFrame(
+    [knn_results, svm_results],
+    columns=["Accuracy", "Precision", "Recall", "F1 Score"],
+    index=["KNN", "SVM"]
+)
+
+print("\nFinal Model Comparison:")
+print(comparison.round(4))
+
+# Step 9: Confusion Matrices
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+ConfusionMatrixDisplay.from_predictions(
+    y_test, knn_pred,
+    display_labels=["Not Spam", "Spam"],
+    cmap="Blues",
+    ax=axes[0],
+    colorbar=False
+)
+
+axes[0].set_title("KNN Confusion Matrix")
+
+ConfusionMatrixDisplay.from_predictions(
+    y_test, svm_pred,
+    display_labels=["Not Spam", "Spam"],
+    cmap="Greens",
+    ax=axes[1],
+    colorbar=False
+)
+
+axes[1].set_title("SVM Confusion Matrix")
+
+plt.tight_layout()
+plt.show()
+
+# Step 10: Accuracy Comparison Graph
+comparison["Accuracy"].plot(
+    kind="bar",
+    figsize=(7, 4),
+    title="KNN vs SVM Accuracy Comparison",
+    ylabel="Accuracy",
+    ylim=(0, 1),
+    rot=0
+)
+
+plt.tight_layout()
+plt.show()
+
+# Step 11: Final Result
+if knn_results[0] > svm_results[0]:
+    print("\nKNN has higher accuracy.")
+elif svm_results[0] > knn_results[0]:
+    print("\nSVM has higher accuracy.")
+else:
+    print("\nBoth models have equal accuracy.")
+
+
+# 1. Accuracy
+
+# Accuracy tells us how many emails were classified correctly out of all tested emails.
+# Accuracy={TP+TN}/{TP+TN+FP+FN}
+
+# 2. Precision
+
+# Precision tells us how many emails predicted as spam were actually spam.
+#  Precision={TP}/{TP+FP}
+# Higher precision means fewer normal emails are incorrectly marked as spam.
+
+# 3. Recall
+# Recall tells us how many actual spam emails were correctly detected.
+# Recall={TP}/{TP+FN}
+# Higher recall means fewer spam emails are missed.
+
+# 4. F1 Score
+# F1 score is the harmonic mean of precision and recall.
+# F1=2*{Precision*Recall}/{Precision+Recall}
+
+
+# Q1. What is the aim of this practical?
+# To classify emails as Spam or Not Spam using KNN and SVM algorithms and compare their performance.
+
+# Q2. What is spam?
+# Spam is an unwanted or unsolicited email, usually containing advertisements, fraudulent messages, or suspicious links.
+
+# Q3. What is binary classification?
+# Binary classification is a supervised learning technique that classifies data into two categories.
+
+# Q4. Which two classes are used in this practical?
+# - 0 – Not Spam (Normal)
+# - 1 – Spam (Abnormal)
+
+# Q5. Which type of machine learning is used?
+# Supervised machine learning because the dataset contains input features and their corresponding class labels.
+
+# Q6. What is the target variable?
+# The last column of the dataset, which represents the spam/not-spam class. The code assumes that the last column is the target.
+
+# Q7. What is the difference between classification and regression?
+# Classification predicts categories or classes, whereas regression predicts continuous numerical values.
+# Dataset and preprocessing questions
+
+# Q8. Which dataset is used?
+# The emails.csv dataset from Kaggle.
+
+# Q9. What are features?
+# Features are the input variables used by the machine learning model to make predictions.
+
+# Q10. What is a target variable?
+# The target variable is the output that we want the model to predict.
+
+# Q11. Why do we remove the Email No. column?
+# Because it is an email identifier and does not provide meaningful information for classifying spam.
+
+# Q12. Why do we use fillna(0)?
+# To replace missing feature values with zero.
+
+# Q13. What is feature scaling?
+# Feature scaling brings numerical features to a comparable scale.
+
+# Q14. Why is feature scaling important in KNN and SVM?
+# Because both algorithms are affected by feature magnitudes. Scaling prevents large-valued features from dominating the calculations.
+
+# Q15. What is StandardScaler?
+# StandardScaler transforms features so that they have approximately zero mean and unit standard deviation.
+
+# Q16. What is data leakage?
+# Data leakage occurs when information from testing data is used during model training, resulting in an unreliable evaluation.
+
+# Q17. Why do we use stratify=y?
+# To maintain approximately the same proportion of spam and not-spam classes in training and testing data.
+
+# KNN questions
+# Q18. What is KNN?
+# K-Nearest Neighbors is a supervised learning algorithm that classifies a data point based on the majority class of its nearest neighbors.
+
+# Q19. What does K represent in KNN?
+# K represents the number of nearest neighbors considered for classification.
+
+# Q20. What is the value of K in your program?
+# K is 5.
+
+# Q21. How does KNN classify an email?
+# It finds the five nearest training emails and assigns the class that occurs most frequently among them.
+
+# Q22. What happens if K is too small?
+# The model may become sensitive to noise and overfit the training data.
+
+# Q23. What happens if K is too large?
+# The model may become too generalized and underfit the data.
+
+# SVM questions
+# Q24. What is SVM?
+# Support Vector Machine is a supervised learning algorithm that finds an optimal decision boundary to separate different classes.
+
+# Q25. What is a hyperplane?
+# A hyperplane is the decision boundary that separates different classes.
+
+# Q26. What are support vectors?
+# Support vectors are the data points closest to the separating hyperplane.
+
+# Q27. What is a margin in SVM?
+# Margin is the distance between the decision boundary and the nearest data points from the classes.
+
+# Q28. What is LinearSVC?
+# LinearSVC is a Scikit-learn implementation of a linear Support Vector Classification algorithm.
+
+# Q29. What does max_iter=10000 mean?
+# It specifies the maximum number of iterations allowed for the model's optimization process.
+
+# Evaluation questions
+# Q30. What is accuracy?
+# Accuracy measures the percentage of correctly classified emails.
+
+# Q31. What is precision?
+# Precision measures how many emails predicted as spam are actually spam.
+
+# Q32. What is recall?
+# Recall measures how many actual spam emails are correctly identified.
+
+# Q33. What is F1 score?
+# F1 score is the harmonic mean of precision and recall.
+
+# Q34. What is a confusion matrix?
+# It is a table used to evaluate classification performance by showing correct and incorrect predictions.
+
+# Q35. What are TP and TN?
+# - TP: Spam correctly classified as spam.
+# - TN: Not Spam correctly classified as not spam.
+# Q36. What are FP and FN?
+# - FP: Not Spam incorrectly classified as spam.
+# - FN: Spam incorrectly classified as not spam.
+# Q37. Which evaluation metric is important for spam detection?
+# Precision and recall are both important. Precision avoids marking genuine emails as spam, while recall helps detect more spam emails. F1 score balances both.
+
+# Q38. Which model performs better?
+# The model with better accuracy, precision, recall, and F1 score is generally preferred. The actual output determines the better model.
+
+# Q39. Why do we use a confusion matrix?
+# To understand the number of correct and incorrect predictions for each class.
+
+# Q40. What is overfitting?
+# Overfitting happens when a model learns the training data too closely and performs poorly on unseen data.

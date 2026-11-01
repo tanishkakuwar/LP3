@@ -1,0 +1,287 @@
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract StudentData {
+
+    // Structure to store student details
+    struct Student {
+        uint rollNo;
+        string name;
+        uint age;
+        string course;
+    }
+
+    // Dynamic array to store student records
+    Student[] public students;
+
+    uint public fallbackCallCount;
+    uint public receiveCallCount;
+    uint public totalEtherReceived;
+
+    // Function to add student details
+    function addStudent(
+        uint _rollNo,
+        string memory _name,
+        uint _age,
+        string memory _course
+    ) public {
+        students.push(Student(_rollNo, _name, _age, _course));
+    }
+
+    // Function to get student details
+    function getStudent(uint index)
+        public
+        view
+        returns (uint, string memory, uint, string memory)
+    {
+        require(index < students.length, "Invalid student index");
+
+        Student memory s = students[index];
+
+        return (s.rollNo, s.name, s.age, s.course);
+    }
+
+    // Function to get total number of students
+    function getStudentCount() public view returns (uint) {
+        return students.length;
+    }
+
+    // Internal function to record received Ether
+    function recordEther() internal {
+        totalEtherReceived += msg.value;
+    }
+
+    // Receive function: called when Ether is sent without data
+    receive() external payable {
+        receiveCallCount++;
+        recordEther();
+    }
+
+    // Fallback function: called when unknown data is sent
+    fallback() external payable {
+        fallbackCallCount++;
+        recordEther();
+    }
+}
+
+In this practical, I created a Student Data smart contract using Solidity. 
+I used a structure to store student information such as roll number, name, age and course.
+ I used a dynamic array to store multiple student records. 
+ I also implemented a payable fallback function that receives Ether and maintains the count and total amount of
+  Ether received through fallback calls. I deployed the contract on the Ethereum Sepolia test network using Remix IDE 
+  and MetaMask. Finally, I performed transactions and observed the gas used, gas price and transaction fees 
+  using Sepolia Etherscan.
+
+
+  5. How to execute this practical using Remix IDE
+We will use Remix IDE, MetaMask and Sepolia testnet.
+Step 1: Open Remix IDE
+Visit: Remix IDE
+1. Open Remix IDE in Chrome.
+2. Click File Explorer.
+3. Create a new file named StudentData.sol.
+4. Paste the Solidity program.
+5. Save the file.
+
+Step 2: Compile the contract
+1. Open the Solidity Compiler tab.
+2. Select compiler version 0.8.20 or a compatible version.
+3. Click Compile StudentData.sol.
+4. Check that the contract compiles successfully.
+
+Step 3: Connect MetaMask
+1. Open MetaMask.
+2. Select the Sepolia test network.
+3. Make sure you have Sepolia test ETH.
+4. Go back to Remix.
+5. Open Deploy & Run Transactions.
+6. Select Injected Provider - MetaMask under Environment.
+7. Approve the connection in MetaMask.
+8. Check that the selected network is Sepolia.
+Step 4: Deploy the contract
+
+1. Select StudentData in the Contract dropdown.
+2. Click Deploy.
+3. MetaMask opens a transaction confirmation window.
+4. Check the gas fee.
+5. Click Confirm.
+6. Wait until the deployment transaction is successful.
+7. Expand the deployed contract under Deployed Contracts.
+Contract deployed
+6. Perform the practical operations
+Operation 1: Add student data
+Expand the deployed contract and find the addStudent function.
+
+Enter these values:
+Sample student record
+Field	Value
+_rollNo	1
+_name	Rahul
+_age	21
+_course	Computer Engineering
+
+In Remix, enter:
+1
+Rahul
+21
+Computer Engineering
+
+
+Click addStudent and confirm the transaction in MetaMask.
+
+Add another student if you want to demonstrate multiple records:
+Field	Value
+Roll number	2
+Name	Priya
+Age	22
+Course	Information Technology
+
+Operation 2: Display student data
+1. Find the getStudent function.
+2. Enter index 0.
+3. Click the button.
+4. Remix displays the first student's details.
+Expected result:
+1
+Rahul
+21
+Computer Engineering
+
+
+You can also call getStudentCount() to see the total number of students.
+
+Note: getStudent and getStudentCount are view functions. When called normally from Remix, 
+they are read-only calls and do not require a paid transaction.
+Operation 3: Test the fallback function
+This is an important part of the practical.
+
+Follow these steps:
+1. Copy the deployed contract address from Remix.
+2. Open MetaMask.
+3. Make sure Sepolia is selected.
+4. Click Send.
+5. Paste the deployed contract address as the recipient.
+6. Enter a small amount, for example 0.001 ETH.
+7. Review the transaction.
+8. Confirm the transaction.
+Since our contract does not have a receive() function, sending ETH with empty transaction data triggers the payable 
+fallback function.
+
+After the transaction succeeds, return to Remix and click:
+- fallbackCallCount
+- totalEtherReceived
+Expected values for one successful fallback transaction:
+fallbackCallCount = 1
+
+totalEtherReceived = 1000000000000000
+
+
+The second value is in Wei, equivalent to 0.001 ETH.
+
+Important: Send only a small amount of Sepolia test ETH. The contract has no withdrawal function, so Ether sent to it will remain locked in this particular practical contract.
+7. Observe transaction fee and gas values
+This is another important part of your experiment.
+
+You should observe the gas details for three transactions:
+1. Contract deployment.
+2. Adding student data.
+3. Sending Ether to trigger fallback.
+
+Steps to check gas values
+1. Open Remix.
+2. Find the transaction in the transaction log or MetaMask Activity.
+3. Copy its transaction hash.
+4. Open Sepolia Etherscan.
+5. Paste the transaction hash into the search box.
+6. Open the transaction details.
+7. Observe the following values.
+Parameter	Description
+Transaction Hash	Unique transaction identifier
+Gas Used	Actual gas consumed
+Gas Limit	Maximum gas allowed
+Gas Price	Price paid per gas unit
+Transaction Fee	Total gas fee paid
+Status	Success or failure
+
+
+Viva questions and answers
+Questions about Solidity
+Q1. What is Solidity?
+Solidity is a programming language used to develop smart contracts on Ethereum.
+
+Q2. What is a smart contract?
+A smart contract is a program deployed on a blockchain that executes according to predefined conditions.
+
+Q3. What is a structure in Solidity?
+A structure is a user-defined data type used to group multiple variables of different data types.
+
+Q4. Why do we use structures?
+We use structures to store related information together, such as student roll number, name, age and course.
+
+Q5. What is an array?
+An array is a collection of elements of the same data type stored under one variable name.
+
+Q6. What is a dynamic array?
+A dynamic array is an array whose size can increase or decrease during program execution.
+
+Q7. What is the difference between fixed and dynamic arrays?
+A fixed array has a predefined size, whereas a dynamic array can grow or shrink.
+Questions about Fallback
+Q8. What is a fallback function?
+A fallback function is a special Solidity function that executes when no matching function is found or when an empty-calldata Ether transfer occurs without a receive() function.
+
+Q9. Why do we use the payable keyword?
+The payable keyword allows a function to receive Ether.
+
+Q10. What is msg.value?
+It represents the amount of Ether sent with a transaction, measured in Wei.
+
+Q11. What is msg.sender?
+It represents the address of the account that calls the contract function.
+
+Q12. What is the difference between fallback and receive?
+Fallback	Receive
+Executes for unmatched function calls.	Executes for empty-calldata Ether transfers.
+Can accept Ether if payable.	Must be payable.
+Can accept calls with data.	Handles empty calldata only.
+Runs for empty calldata when receive() is absent.	Takes priority for empty-calldata Ether transfers when present.
+
+Q13. Can a fallback function accept Ether?
+Yes, if it is declared as payable.
+Questions about Gas
+Q14. What is gas in Ethereum?
+Gas measures the computational work required to execute transactions and smart contract operations.
+
+Q15. What is gas used?
+Gas used is the actual amount of gas consumed by a transaction.
+
+Q16. What is gas limit?
+Gas limit is the maximum gas that can be consumed by a transaction.
+
+Q17. What is Gwei?
+Gwei is a smaller denomination of Ether used to express gas prices.
+
+Q18. How is transaction fee calculated?
+Transaction fee equals gas used multiplied by effective gas price.
+
+Q19. Why does deploying a smart contract require gas?
+Because deployment requires the Ethereum network to process the transaction and store the contract's bytecode.
+
+Q20. Does a view function consume gas?
+A normal off-chain read-only call does not require a paid transaction. If executed as an on-chain transaction, it consumes gas.
+Other important questions
+Q21. What is Remix IDE?
+Remix is an online development environment used to write, compile and deploy Solidity smart contracts.
+
+Q22. What is MetaMask?
+MetaMask is a cryptocurrency wallet used to connect to Ethereum networks and approve blockchain transactions.
+
+Q23. What is Sepolia?
+Sepolia is an Ethereum test network used for smart contract development and testing.
+
+Q24. What is a transaction hash?
+It is a unique identifier assigned to a blockchain transaction.
+
+Q25. What is Etherscan?
+Etherscan is a blockchain explorer used to inspect transactions, addresses, blocks and smart contracts.

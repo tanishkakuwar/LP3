@@ -1,0 +1,404 @@
+# Uber Fare Price Prediction using Linear Regression
+# and Random Forest Regression
+
+# Step 1: Import required libraries
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+
+from sklearn.metrics import (
+    r2_score,
+    mean_absolute_error,
+    mean_squared_error
+)
+
+# Step 2: Load the dataset
+
+df = pd.read_csv("uber.csv")
+
+print("Original Dataset:")
+print(df.head())
+
+print("\nDataset Shape:", df.shape)
+
+# Step 3: Pre-process the dataset
+
+# Remove unnecessary columns
+df.drop(columns=["Unnamed: 0", "key"],
+        errors="ignore", inplace=True)
+
+# Remove duplicate records
+df.drop_duplicates(inplace=True)
+
+# Convert pickup_datetime into datetime format
+df["pickup_datetime"] = pd.to_datetime(
+    df["pickup_datetime"], errors="coerce", utc=True
+)
+
+# Remove rows containing missing values
+df.dropna(inplace=True)
+
+# Extract useful date and time features
+df["pickup_hour"] = df["pickup_datetime"].dt.hour
+df["pickup_day"] = df["pickup_datetime"].dt.day
+df["pickup_month"] = df["pickup_datetime"].dt.month
+df["pickup_weekday"] = df["pickup_datetime"].dt.weekday
+
+# Step 4: Remove invalid values
+
+# Keep valid NYC geographical coordinates
+df = df[
+    (df["pickup_longitude"].between(-75, -72)) &
+    (df["dropoff_longitude"].between(-75, -72)) &
+    (df["pickup_latitude"].between(40, 42)) &
+    (df["dropoff_latitude"].between(40, 42))
+]
+
+# Keep reasonable fare and passenger values
+df = df[
+    (df["fare_amount"] > 0) &
+    (df["passenger_count"].between(1, 6))
+]
+
+# Step 5: Calculate distance using Haversine formula
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+
+    # Convert degrees into radians
+    lat1, lon1, lat2, lon2 = map(
+        np.radians, [lat1, lon1, lat2, lon2]
+    )
+
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = (
+        np.sin(dlat / 2) ** 2 +
+        np.cos(lat1) * np.cos(lat2) *
+        np.sin(dlon / 2) ** 2
+    )
+
+    c = 2 * np.arcsin(np.sqrt(a))
+
+    # Earth's radius in kilometres
+    return 6371 * c
+
+# np.radians() converts latitude and longitude from degrees into radians.
+# dlat calculates the difference between the two latitudes.
+# dlon calculates the difference between the two longitudes.
+# a calculates an intermediate value using the Haversine formula.
+# c calculates the angular distance.
+# 6371 * c calculates the final distance in kilometres because Earth's approximate radius is 6371 km.
+
+df["distance_km"] = calculate_distance(
+    df["pickup_latitude"],
+    df["pickup_longitude"],
+    df["dropoff_latitude"],
+    df["dropoff_longitude"]
+)
+
+# Remove zero-distance and unusually long trips
+df = df[
+    (df["distance_km"] > 0) &
+    (df["distance_km"] <= 50)
+]
+
+print("\nDataset after preprocessing:")
+print(df.head())
+
+print("\nShape after preprocessing:", df.shape)
+
+# Step 6: Identify outliers using IQR method
+
+Q1 = df["fare_amount"].quantile(0.25)
+Q3 = df["fare_amount"].quantile(0.75)
+
+IQR = Q3 - Q1
+
+lower_limit = Q1 - 1.5 * IQR
+upper_limit = Q3 + 1.5 * IQR
+
+print("\nLower Limit:", lower_limit)
+print("Upper Limit:", upper_limit)
+
+outliers = df[
+    (df["fare_amount"] < lower_limit) |
+    (df["fare_amount"] > upper_limit)
+]
+
+print("Number of outliers:", len(outliers))
+
+# Remove fare outliers
+df = df[
+    (df["fare_amount"] >= lower_limit) &
+    (df["fare_amount"] <= upper_limit)
+]
+
+print("Shape after removing outliers:", df.shape)
+
+# Step 7: Check correlation
+
+features = [
+    "pickup_longitude",
+    "pickup_latitude",
+    "dropoff_longitude",
+    "dropoff_latitude",
+    "passenger_count",
+    "pickup_hour",
+    "pickup_day",
+    "pickup_month",
+    "pickup_weekday",
+    "distance_km"
+]
+
+correlation = df[features + ["fare_amount"]].corr()
+
+print("\nCorrelation with Fare Amount:")
+print(correlation["fare_amount"].sort_values(ascending=False))
+
+# Step 8: Split data into input and output
+
+X = df[features]
+y = df["fare_amount"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+print("\nTraining Data:", X_train.shape)
+print("Testing Data:", X_test.shape)
+
+# Step 9: Implement Linear Regression
+
+lr_model = LinearRegression()
+
+lr_model.fit(X_train, y_train)
+
+lr_pred = lr_model.predict(X_test)
+
+# Evaluate Linear Regression
+lr_r2 = r2_score(y_test, lr_pred)
+
+lr_mae = mean_absolute_error(y_test, lr_pred)
+
+lr_mse = mean_squared_error(y_test, lr_pred)
+
+lr_rmse = np.sqrt(lr_mse)
+
+print("\nLinear Regression Results")
+
+print("R2 Score:", lr_r2)
+print("MAE:", lr_mae)
+print("MSE:", lr_mse)
+print("RMSE:", lr_rmse)
+
+# Step 10: Implement Random Forest Regression
+
+rf_model = RandomForestRegressor(
+    n_estimators=50,
+    max_depth=20,
+    min_samples_leaf=2,
+    random_state=42,
+    n_jobs=-1   # 	Uses all available CPU cores for parallel processing
+)
+
+rf_model.fit(X_train, y_train)
+
+rf_pred = rf_model.predict(X_test)
+
+# Evaluate Random Forest
+rf_r2 = r2_score(y_test, rf_pred)
+
+rf_mae = mean_absolute_error(y_test, rf_pred)
+
+rf_mse = mean_squared_error(y_test, rf_pred)
+
+rf_rmse = np.sqrt(rf_mse)
+
+print("\nRandom Forest Regression Results")
+
+print("R2 Score:", rf_r2)
+print("MAE:", rf_mae)
+print("MSE:", rf_mse)
+print("RMSE:", rf_rmse)
+
+# Step 11: Compare both models
+
+results = pd.DataFrame({
+    "Model": ["Linear Regression", "Random Forest"],
+    "R2 Score": [lr_r2, rf_r2],
+    "MAE": [lr_mae, rf_mae],
+    "MSE": [lr_mse, rf_mse],
+    "RMSE": [lr_rmse, rf_rmse]
+})
+
+print("\nModel Comparison:")
+print(results)
+
+# Step 12: Plot model comparison
+
+plt.figure(figsize=(8, 5))
+
+plt.bar(
+    results["Model"],
+    results["R2 Score"]
+)
+
+plt.title("R2 Score Comparison")
+plt.ylabel("R2 Score")
+plt.xlabel("Regression Models")
+plt.grid(axis="y")
+plt.show()
+
+# Step 13: Compare actual and predicted fares
+
+plt.figure(figsize=(8, 5))
+
+plt.scatter(
+    y_test,
+    rf_pred,
+    alpha=0.4
+)
+
+plt.xlabel("Actual Fare")
+plt.ylabel("Predicted Fare")
+plt.title("Actual vs Predicted Fare - Random Forest")
+plt.grid()
+plt.show()
+
+# Step 14: Display final model
+
+if rf_r2 > lr_r2:
+    print("\nRandom Forest Regression performs better.")
+else:
+    print("\nLinear Regression performs better.")
+
+
+# Q1. What is the aim of this practical?
+# To predict Uber ride fares using Linear Regression and Random Forest Regression.
+
+# Q2. What is machine learning?
+# Machine learning is a branch of AI that enables computers to learn patterns from data and make predictions without being explicitly programmed for every task.
+
+# Q3. Which type of machine learning is used here?
+# Supervised learning because the dataset contains input features and known fare values.
+
+# Q4. Is this classification or regression?
+# Regression because we are predicting a continuous numerical value, which is the fare amount.
+
+# Q5. Which dataset is used?
+# Uber Fares Dataset from Kaggle.
+
+# Q6. What is the target variable?
+# fare_amount.
+
+# Q7. What are independent variables?
+# Pickup and drop-off coordinates, passenger count, pickup time features, and calculated distance.
+# Data preprocessing questions
+# Q8. What is data preprocessing?
+# It is the process of cleaning and transforming raw data before applying machine learning algorithms.
+
+# Q9. Why do we remove duplicate records?
+# To prevent repeated observations from unnecessarily affecting model training.
+
+# Q10. Why do we use dropna()?
+# To remove rows containing missing values.
+
+# Q11. What is feature engineering?
+# Feature engineering is the process of creating useful input features from existing data.
+
+# Q12. Why do we extract hour, day, month, and weekday?
+# To help the model learn possible relationships between pickup timing and fare.
+
+# Q13. Why do we remove the key column?
+# Because it is a unique ride identifier and does not provide useful information for predicting fare.
+
+# Q14. What is latitude and longitude?
+# Latitude specifies a location's north-south position, while longitude specifies its east-west position.
+
+# Q15. What is the Haversine formula?
+# It calculates the geographical distance between two points on the Earth's surface using latitude and longitude.
+
+# Q16. Why is the Earth's radius 6371 used?
+# Because the approximate mean radius of Earth is 6371 kilometres, so the calculated distance is in kilometres.
+# Outlier and correlation questions
+# Q17. What is an outlier?
+# An outlier is a data value that is significantly different from most other values.
+
+# Q18. Which method is used to identify outliers?
+# The Interquartile Range (IQR) method.
+
+# Q19. What is IQR?
+# IQR is the difference between the third quartile and the first quartile.
+# \[
+# IQR=Q3-Q1
+# \]
+
+# Q20. What is correlation?
+# Correlation measures the strength and direction of the relationship between two numerical variables.
+
+# Q21. What is the range of correlation?
+# From -1 to +1.
+
+# Q22. What does positive correlation mean?
+# When one variable increases, the other variable tends to increase.
+
+# Q23. What does negative correlation mean?
+# When one variable increases, the other variable tends to decrease.
+# Algorithm questions
+# Q24. What is Linear Regression?
+# It is a supervised learning algorithm that predicts continuous values by fitting a linear relationship between input and output variables.
+
+# Q25. What is Random Forest Regression?
+# It is an ensemble learning algorithm that combines multiple decision trees and averages their predictions.
+
+# Q26. What is an ensemble learning algorithm?
+# It combines multiple machine learning models to produce a more reliable prediction.
+
+# Q27. What is a decision tree?
+# A decision tree is a tree-based algorithm that makes predictions by following a sequence of feature-based decisions.
+
+# Q28. What is the difference between Linear Regression and Random Forest?
+# Linear Regression learns a linear relationship, whereas Random Forest uses multiple decision trees to learn more complex relationships.
+
+# Q29. What does n_estimators=50 mean?
+# It means the Random Forest model creates 50 decision trees.
+
+# Q30. What does max_depth=20 mean?
+# It limits the maximum depth of each decision tree to 20 levels.
+# Model evaluation questions
+# Q31. Why do we split the dataset into training and testing data?
+# To train the model on one portion and evaluate its performance on unseen data.
+
+# Q32. Why do we use an 80:20 split?
+# 80% is used for training and 20% for testing. It is a common choice for evaluating machine learning models.
+
+# Q33. What is R² score?
+# It measures how much variation in the target variable is explained by the model.
+
+# Q34. What is MAE?
+# Mean Absolute Error measures the average absolute difference between actual and predicted values.
+
+# Q35. What is MSE?
+# Mean Squared Error measures the average squared prediction error.
+
+# Q36. What is RMSE?
+# Root Mean Squared Error is the square root of MSE and is expressed in the same unit as the target variable.
+
+# Q37. Which is better, higher R² or lower RMSE?
+# Higher R² and lower RMSE are generally better.
+
+# Q38. Why do we compare two models?
+# To identify which model predicts Uber fares more accurately on the testing dataset.
+
+# Q39. What is overfitting?
+# Overfitting occurs when a model learns the training data too closely, including noise, and performs poorly on unseen data.
+
+# Q40. Which model is better in this practical?
+# The model with higher R² and lower MAE and RMSE is generally better. We should decide based on the actual output, not assume that Random Forest always wins.

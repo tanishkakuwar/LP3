@@ -1,0 +1,265 @@
+# BANK CUSTOMER CHURN PREDICTION USING ANN
+# 0 means the customer stays.
+# 1 means the customer leaves.
+# 1. Import Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# 2. Load Dataset
+df = pd.read_csv("Churn_Modelling.csv")
+
+print("First 5 Records:")
+print(df.head())
+
+print("\nDataset Shape:", df.shape)
+print("\nDataset Information:")
+print(df.info())
+
+# 3. Data Preprocessing
+# Remove unnecessary columns
+df = df.drop(["RowNumber", "CustomerId", "Surname"], axis=1)
+
+# Separate input and output
+X = df.drop("Exited", axis=1)
+y = df["Exited"]
+
+# Convert categorical columns into numerical columns
+X = pd.get_dummies(X, columns=["Geography", "Gender"], drop_first=True, dtype=int)
+
+# 4. Split Dataset into Training and Testing
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+print("\nTraining Data Shape:", X_train.shape)
+print("Testing Data Shape:", X_test.shape)
+
+# 5. Feature Scaling
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# 6. Build ANN Model
+model = MLPClassifier(
+    hidden_layer_sizes=(16, 8), # Two hidden layers containing 16 and 8 neurons
+    activation="relu",           # 	Uses ReLU activation function - Rectified Linear Unit. f(x)=max(0,x)
+    solver="adam",              # 	Uses Adam optimizer - Adaptive Moment Estimation.
+    max_iter=300,
+    random_state=42,
+    early_stopping=True     # Stops training when validation performance stops improving
+)
+
+# 7. Train ANN Model
+model.fit(X_train, y_train)
+
+print("\nANN Model Training Completed!")
+
+# 8. Make Predictions
+y_pred = model.predict(X_test)
+
+# 9. Evaluate Model
+accuracy = accuracy_score(y_test, y_pred)
+
+print("\nModel Accuracy:", round(accuracy * 100, 2), "%")
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# 10. Plot Training Loss Graph
+plt.figure(figsize=(8, 5))
+plt.plot(model.loss_curve_)
+plt.title("ANN Training Loss")
+plt.xlabel("Iterations")
+plt.ylabel("Loss")
+plt.grid(True)
+plt.show()
+
+# 11. Predict Churn for One Customer
+sample_customer = X_test[0].reshape(1, -1)
+
+prediction = model.predict(sample_customer)
+
+print("\nCustomer Churn Prediction:")
+
+if prediction[0] == 1:
+    print("The customer is likely to leave the bank.")
+else:
+    print("The customer is likely to stay with the bank.")
+
+# X_test[0] selects the first customer from the testing data.
+# .reshape(1, -1) converts it into a two-dimensional array containing one customer.
+# model.predict() predicts the customer's churn status.
+# if-else displays the final result.
+
+# What is customer churn?
+# Customer churn means a customer stops using a company's products or services.
+
+# Basic questions
+# Q1. What is the aim of this practical?
+
+# To predict whether a bank customer will leave or stay using an Artificial Neural Network.
+
+# Q2. What is customer churn?
+
+# Customer churn means a customer stops using the services of a company or organization.
+
+# Q3. What is ANN?
+
+# ANN stands for Artificial Neural Network. It is a machine learning model inspired by the working of the human brain.
+
+# Q4. What type of machine learning is used?
+
+# Supervised learning because the dataset contains input features and known output labels.
+
+# Q5. Is this classification or regression?
+
+# Classification because the output contains two categories: 0 and 1.
+
+# Q6. What is the target variable?
+
+# Exited.
+
+# Q7. What does 0 and 1 represent?
+# - 0 – Customer stays.
+# - 1 – Customer leaves.
+# Dataset and preprocessing questions
+# Q8. Which dataset is used?
+
+# Bank Customer Churn dataset (Churn_Modelling.csv) from Kaggle.
+
+# Q9. How many records are in the dataset?
+
+# 10,000 customer records.
+
+# Q10. How many columns are in the original dataset?
+
+# 14 columns.
+
+# Q11. Why do we remove RowNumber, CustomerId, and Surname?
+
+# They are identification-related columns and are not useful input features for this prediction task.
+
+# Q12. What is One-Hot Encoding?
+
+# It converts categorical variables into numerical binary columns.
+
+# Q13. Why do we use One-Hot Encoding?
+
+# Because the neural network requires numerical input, whereas Geography and Gender contain categorical values.
+
+# Q14. What does drop_first=True mean?
+
+# It drops the first category from each encoded feature to avoid redundant columns.
+
+# Q15. What is feature scaling?
+
+# Feature scaling brings numerical features onto a comparable scale.
+
+# Q16. Why do we use StandardScaler?
+
+# To standardize features so that differences in their numerical ranges do not adversely affect neural network training.
+
+# Q17. What is data leakage?
+
+# It occurs when information from testing data is used during model training, making evaluation unreliable.
+# ANN-related questions
+# Q18. What are the main layers of ANN?
+
+# Input layer, hidden layer, and output layer.
+
+# Q19. What is a neuron?
+
+# A neuron is a basic processing unit of an artificial neural network.
+
+# Q20. How many hidden layers are used in your program?
+
+# Two hidden layers.
+
+# Q21. How many neurons are present in each hidden layer?
+# - First hidden layer: 16 neurons.
+# - Second hidden layer: 8 neurons.
+# Q22. What is an activation function?
+
+# An activation function introduces non-linearity into a neural network, helping it learn complex patterns.
+
+# Q23. Which activation function is used?
+
+# ReLU (Rectified Linear Unit).
+
+# Q24. What is the ReLU formula?
+# \[
+# f(x)=\max(0,x)
+# \]
+
+# Q25. What is an optimizer?
+
+# An optimizer updates the network's weights to minimize the loss function during training.
+
+# Q26. Which optimizer is used?
+
+# Adam optimizer.
+
+# Q27. What does max_iter=300 mean?
+
+# It specifies the maximum number of training iterations.
+
+# Q28. What is early stopping?
+
+# Early stopping stops training when the validation score stops improving, helping to reduce overfitting.
+
+# Q29. What is forward propagation?
+
+# It is the process of passing input data through the network to generate an output.
+
+# Q30. What is backpropagation?
+
+# It is the process of calculating errors and adjusting network weights to improve predictions.
+# Evaluation questions
+# Q31. What is accuracy?
+
+# It is the percentage of correctly predicted customers.
+
+# Q32. What is precision?
+
+# It measures how many customers predicted as churned actually churned.
+
+# Q33. What is recall?
+
+# It measures how many actual churned customers were correctly identified.
+
+# Q34. What is F1 score?
+
+# It is the harmonic mean of precision and recall.
+
+# Q35. What is a confusion matrix?
+
+# It is a table that shows correct and incorrect classification predictions.
+
+# Q36. What is loss in ANN?
+
+# Loss measures the difference between the model's predictions and actual outputs.
+
+# Q37. Why do we plot the loss graph?
+
+# To observe how the training loss changes during model training.
+
+# Q38. What is overfitting?
+
+# Overfitting occurs when a model learns the training data too closely and performs poorly on unseen data.
+
+# Q39. What is the difference between ANN and traditional machine learning?
+
+# Traditional algorithms may use simpler mathematical models or decision rules, while ANN uses interconnected neurons and layers to learn complex patterns.
+
+# Q40. What is the final output of your practical?
+# The model predicts whether a bank customer is likely to stay or leave the bank.

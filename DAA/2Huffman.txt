@@ -1,0 +1,255 @@
+# Huffman Coding without importing any libraries
+# Node class for Huffman Tree
+class Node:
+    def __init__(self, char, freq):
+        self.char = char
+        self.freq = freq
+        self.left = None
+        self.right = None
+
+
+# Calculate character frequencies manually
+def calculate_frequency(text):
+    frequency = {}
+
+    for char in text:
+        if char in frequency:
+            frequency[char] += 1
+        else:
+            frequency[char] = 1
+
+    return frequency
+
+# What is Huffman Coding?
+# Huffman Coding is a lossless data compression algorithm used to reduce the size of data without losing any information.
+# It assigns binary codes to characters based on their frequency of occurrence.
+# - Characters appearing more frequently get shorter binary codes.
+# - Characters appearing less frequently get longer binary codes.
+# - No character's code is the prefix of another character's code. This is called the Prefix Property.
+
+# Build Huffman Tree
+def build_huffman_tree(text):
+    frequency = calculate_frequency(text)
+    heap = [] #Creates an empty list called heap
+
+    for char in frequency:
+        heap.append(Node(char, frequency[char]))
+
+    if len(heap) == 0:
+        return None
+
+    if len(heap) == 1:
+        return heap[0]
+
+    while len(heap) > 1:
+
+        # Find node with minimum frequency
+        min1 = 0
+
+        for i in range(1, len(heap)):
+            if heap[i].freq < heap[min1].freq:
+                min1 = i
+
+        left = heap.pop(min1)
+
+        # Find second minimum frequency
+        min2 = 0
+
+        for i in range(1, len(heap)):
+            if heap[i].freq < heap[min2].freq:
+                min2 = i
+
+        right = heap.pop(min2)
+
+        # Create new internal node
+        new_node = Node(None, left.freq + right.freq)
+
+        new_node.left = left
+        new_node.right = right
+
+        heap.append(new_node)
+
+    return heap[0]
+
+
+# Generate Huffman Codes
+def generate_codes(root, code="", codes=None):
+
+    if codes is None:
+        codes = {}
+
+    if root is None:
+        return codes
+
+    if root.char is not None:
+        codes[root.char] = code if code else "0"
+        return codes
+
+    generate_codes(root.left, code + "0", codes)
+    generate_codes(root.right, code + "1", codes)
+
+    return codes
+
+
+# Encode Text
+def encode_text(text, codes):
+    encoded = ""
+
+    for char in text:
+        encoded += codes[char]
+
+    return encoded
+
+
+# Decode Text
+def decode_text(encoded_text, root):
+
+    if root is None:
+        return ""
+
+    if root.left is None and root.right is None:
+        return root.char * len(encoded_text)
+
+    decoded = ""
+    current = root
+
+    for bit in encoded_text:
+
+        if bit == "0":
+            current = current.left
+        else:
+            current = current.right
+
+        if current.char is not None:
+            decoded += current.char
+            current = root
+
+    return decoded
+
+
+# Main Menu
+text = input("Enter the text: ")
+
+root = None
+codes = {}
+encoded_text = ""
+
+while True:
+
+    print("\n----- HUFFMAN ENCODING MENU -----")
+    print("1. Build Huffman Tree")
+    print("2. Encode the Text")
+    print("3. Decode the Text")
+    print("4. Exit")
+
+    choice = input("Enter your choice: ")
+
+    match choice:
+
+        case "1":
+            root = build_huffman_tree(text)
+            codes = generate_codes(root)
+
+            print("\nHuffman Tree Built Successfully!")
+            print("Character Frequencies and Codes:")
+
+            frequency = calculate_frequency(text)
+
+            for char in frequency:
+                print(repr(char), ":", frequency[char],
+                      "->", codes[char])
+
+        case "2":
+            if root is None:
+                print("Please build the Huffman Tree first!")
+
+            else:
+                encoded_text = encode_text(text, codes)
+                print("Original Text:", text)
+                print("Encoded Text:", encoded_text)
+
+        case "3":
+            if root is None:
+                print("Please build the Huffman Tree first!")
+
+            elif encoded_text == "" and text != "":
+                print("Please encode the text first!")
+
+            else:
+                decoded_text = decode_text(encoded_text, root)
+                print("Decoded Text:", decoded_text)
+
+        case "4":
+            print("Exiting Program...")
+            break
+
+        case _:
+            print("Invalid Choice! Please try again.")
+
+# Huffman Coding is a lossless data compression algorithm used to reduce the size of data without losing any information.
+
+# It assigns variable-length binary codes to characters based on their frequency of occurrence.
+# - Characters with higher frequency get shorter binary codes.
+# - Characters with lower frequency get longer binary codes.
+# - No code is a prefix of another code. This property is called the prefix property.
+
+# Operation	Time complexity	Explanation
+# Calculate frequency	O(n)	Visits every character
+# Build Huffman Tree	O(m²)	Repeatedly searches for two minimum-frequency nodes in a list
+# Generate Huffman Codes	O(m)	Visits the tree nodes
+# Encode Text	O(L)	Produces the encoded output of length L
+# Decode Text	O(L)	Reads each encoded bit once
+
+# Overall time complexity: O(n + m² + L).
+
+# Space complexity: O(n + m) for the overall program's main data structures and output, 
+# with O(m) for the Huffman Tree and code dictionary. The recursive tree traversal also uses O(m) 
+# worst-case call-stack space.
+
+# 1. What is Huffman Coding?
+
+# Huffman Coding is a lossless data compression algorithm that assigns variable-length binary codes to characters based on their frequencies.
+
+# 2. Why is Huffman Coding used?
+
+# It is used to reduce the size of data and save storage space and transmission bandwidth.
+
+# 3. What is lossless compression?
+
+# Lossless compression means compressing data without losing any original information.
+
+# 4. What is a greedy algorithm?
+
+# A greedy algorithm selects the best available choice at every step to reach an optimal solution.
+
+# 5. Why is Huffman Coding called a greedy algorithm?
+
+# Because it repeatedly selects the two nodes with the lowest frequencies and combines them.
+
+# 6. What is frequency in Huffman Coding?
+
+# Frequency is the number of times a character appears in the input text.
+
+# 7. What is a Huffman Tree?
+
+# A Huffman Tree is a binary tree used to generate variable-length binary codes for characters.
+
+# 8. What is a binary code?
+
+# A binary code is a representation using only two digits: 0 and 1.
+
+# 9. What is a prefix property?
+
+# The prefix property means that no character's code is the prefix of another character's code.
+
+# 10. Why is the prefix property important?
+
+# It allows the encoded text to be decoded uniquely without needing separators between character codes.
+
+# 11. What are the steps in Huffman Coding?
+# 1. Calculate character frequencies.
+# 2. Create leaf nodes.
+# 3. Select two minimum-frequency nodes.
+# 4. Combine them into a new node.
+# 5. Repeat until one root remains.
+# 6. Generate binary codes.
